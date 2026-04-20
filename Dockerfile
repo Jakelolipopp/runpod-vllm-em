@@ -1,11 +1,12 @@
 FROM nvidia/cuda:12.9.1-base-ubuntu22.04 
 
 RUN apt-get update -y \
-    && apt-get install -y python3-pip
+    && apt-get install -y python3 python3-pip dos2unix \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN ldconfig /usr/local/cuda-12.9/compat/
 
-# Install vLLM with FlashInfer - use CUDA 12.8 PyTorch wheels (compatible with vLLM 0.15.1)
+# Install vLLM with FlashInfer - use CUDA 12.9 PyTorch wheels
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install "vllm[flashinfer]==0.19.0" --extra-index-url https://download.pytorch.org/whl/cu129
 
@@ -52,6 +53,10 @@ RUN if [ "${VLLM_NIGHTLY}" = "true" ]; then \
 fi
 
 COPY src /src
+
+# Strip Windows line endings from all scripts to prevent tini execution errors
+RUN find /src -type f \( -name "*.py" -o -name "*.sh" \) -exec dos2unix {} +
+
 RUN --mount=type=secret,id=HF_TOKEN,required=false \
     if [ -f /run/secrets/HF_TOKEN ]; then \
     export HF_TOKEN=$(cat /run/secrets/HF_TOKEN); \
@@ -60,5 +65,5 @@ RUN --mount=type=secret,id=HF_TOKEN,required=false \
     python3 /src/download_model.py; \
     fi
 
-# Start the handler
-CMD ["python3", "/src/handler.py"]
+# Start the handler (unbuffered)
+CMD ["python3", "-u", "/src/handler.py"]
