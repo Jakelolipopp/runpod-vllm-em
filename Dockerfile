@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install --upgrade -r /requirements.txt
 
 # Setup for Option 2: Building the Image with the Model included
-ARG MODEL_NAME="surogate/Qwen3.5-0.8B-NVFP4"
+ARG MODEL_NAME="sakamakismile/Huihui-Qwen3.6-35B-A3B-abliterated-NVFP4"
 ARG TOKENIZER_NAME=""
 ARG BASE_PATH="/models"
 ARG QUANTIZATION=""
